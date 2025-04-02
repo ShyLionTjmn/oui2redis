@@ -10,38 +10,40 @@ Hash keys are lowercase!
 
 Example:
 
-  $ redis-cli HGETALL oui | head
-  28bb59
-  RNET Technologies, Inc.
-  a8610a
-  ARDUINO AG
-  c853e1
-  Beijing Bytedance Network Technology Co., Ltd
-  a06610
-  FUJITSU LIMITED
-  a42249
-  Sagemcom Broadband SAS
+```
+$ redis-cli HGETALL oui | head
+28bb59
+RNET Technologies, Inc.
+a8610a
+ARDUINO AG
+c853e1
+Beijing Bytedance Network Technology Co., Ltd
+a06610
+FUJITSU LIMITED
+a42249
+Sagemcom Broadband SAS
 
-  $ redis-cli HGETALL oui28 | head
-  c0eac3d
-  Kontron Asia Technology Inc.
-  4ce1734
-  Huizhou Dehong Technology Co., Ltd.
-  80a5791
-  Zhe Jiang EV-Tech Co.,Ltd
-  c0482fc
-  Lunar USA Inc.
-  98aafc9
-  BEAM Authentic
+$ redis-cli HGETALL oui28 | head
+c0eac3d
+Kontron Asia Technology Inc.
+4ce1734
+Huizhou Dehong Technology Co., Ltd.
+80a5791
+Zhe Jiang EV-Tech Co.,Ltd
+c0482fc
+Lunar USA Inc.
+98aafc9
+BEAM Authentic
 
-  $ redis-cli HGETALL oui36 | head
-  70b3d594d
-  SEASON DESIGN TECHNOLOGY
-  70b3d50c2
-  LOOK EASY INTERNATIONAL LIMITED
-  70b3d5f9a
-  Krabbenhøft og Ingolfsson
-  70b3d5abe
-  MART NETWORK SOLUTIONS LTD
-  70b3d59e8
-  Zerospace ICT Services B.V.
+$ redis-cli HGETALL oui36 | head
+70b3d594d
+SEASON DESIGN TECHNOLOGY
+70b3d50c2
+LOOK EASY INTERNATIONAL LIMITED
+70b3d5f9a
+Krabbenhøft og Ingolfsson
+70b3d5abe
+MART NETWORK SOLUTIONS LTD
+70b3d59e8
+Zerospace ICT Services B.V.
+```
