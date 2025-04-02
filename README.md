@@ -8,7 +8,7 @@ MAC search order:
 
 lookup "oui" hash with first 6 half-octets (3 octets)
 
-If you find "IEEE Registration Authority", then lookup "oui" with first 7 half-octets or lookup "oui" with first 9 half-octets until you find answer (if it is there).
+If you find "IEEE Registration Authority", then lookup "oui" with first 7 or 9 half-octets.
 
 
 
@@ -29,4 +29,20 @@ Superlead
 --
 d014119
 
+```
+
+```
+$ redis-cli HGET oui 70b3d5
+IEEE Registration Authority
+
+$ redis-cli HGETALL oui | grep -A 1 70b3d5 | head
+70b3d56c0
+LLC "NTZ "Mekhanotronika"
+--
+70b3d5978
+Satixfy Israel Ltd.
+--
+70b3d5968
+LGM Ingénierie
+--
 ```
