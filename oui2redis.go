@@ -29,6 +29,8 @@ func main() {
 _ = DEFAULT_URL28
 _ = DEFAULT_URL36
 
+  dblist := regexp.MustCompile(`^\d+(?:,\d+)*$`)
+
   oui24 := regexp.MustCompile(`^([0-9a-fA-F]{6})$`)
   oui28 := regexp.MustCompile(`^([0-9a-fA-F]{7})$`)
   oui36 := regexp.MustCompile(`^([0-9a-fA-F]{9})$`)
@@ -39,6 +41,8 @@ _ = DEFAULT_URL36
   var opt_S string
   var opt_v int
 
+  var opt_d string
+
   var err error
 
   flag.StringVar(&opt_s, "s", DEFAULT_REDIS_SOCKET, "redis unix socket")
@@ -46,8 +50,14 @@ _ = DEFAULT_URL36
   flag.StringVar(&opt_M, "M", DEFAULT_URL28, "URL of 28-bit mem.csv")
   flag.StringVar(&opt_S, "S", DEFAULT_URL36, "URL of 36-bit oui36.csv")
 
+  flag.StringVar(&opt_d, "d", "0", "Redis databases to save to, comma separated")
+
   flag.IntVar(&opt_v, "v", 0, "Verbosity level (0, 1, 2)")
   flag.Parse()
+
+  if !dblist.MatchString(opt_d) {
+    log.Fatal("Bad DB list: ", opt_d)
+  }
 
   // Fetch 24-bit OUI
   client := http.Client{Timeout: time.Second*60}
@@ -149,13 +159,22 @@ _ = DEFAULT_URL36
 
   defer red.Close()
 
-  for oui, corp := range data {
-    _, err = red.Do("HSET", "oui", oui, corp)
+  for _, db := range strings.Split(opt_d, ",") {
+    if opt_v > 0 { fmt.Println("Select DB: ", db) }
 
-    if opt_v > 1 { fmt.Println(oui, "\t", corp) }
-
+    _, err = red.Do("SELECT", db)
     if err != nil {
       log.Fatal(err)
+    }
+
+    for oui, corp := range data {
+      _, err = red.Do("HSET", "oui", oui, corp)
+
+      if opt_v > 1 { fmt.Println(oui, "\t", corp) }
+
+      if err != nil {
+        log.Fatal(err)
+      }
     }
   }
 
