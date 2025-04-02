@@ -10,7 +10,7 @@ import (
   "encoding/csv"
   "github.com/gomodule/redigo/redis"
   "flag"
-  _ "fmt"
+  "fmt"
 )
 
 //const DEFAULT_URL="https://standards-oui.ieee.org/oui/oui.txt"
@@ -37,6 +37,7 @@ _ = DEFAULT_URL36
   var opt_s string
   var opt_M string
   var opt_S string
+  var opt_v int
 
   var err error
 
@@ -44,10 +45,14 @@ _ = DEFAULT_URL36
   flag.StringVar(&opt_u, "u", DEFAULT_URL, "URL of 24-bit oui.csv")
   flag.StringVar(&opt_M, "M", DEFAULT_URL28, "URL of 28-bit mem.csv")
   flag.StringVar(&opt_S, "S", DEFAULT_URL36, "URL of 36-bit oui36.csv")
+
+  flag.IntVar(&opt_v, "v", 0, "Verbosity level (0, 1, 2)")
   flag.Parse()
 
   // Fetch 24-bit OUI
   client := http.Client{Timeout: time.Second*60}
+
+  if opt_v > 0 { fmt.Println("Fetching ", opt_u) }
 
   var response *http.Response
   response, err = client.Get(opt_u)
@@ -55,6 +60,8 @@ _ = DEFAULT_URL36
     log.Fatal(err)
   }
   defer response.Body.Close()
+
+  if opt_v > 0 { fmt.Println("Parsing ", opt_u) }
 
   data := make(map[string]string)
 
@@ -65,8 +72,6 @@ _ = DEFAULT_URL36
     log.Fatal(err)
   }
 
-  data["time"] = time.Now().String()
-
   for _, record := range records {
     if len(record) == 4 && oui24.MatchString(record[1]) {
       data[ strings.ToLower(record[1]) ] = strings.TrimSpace(record[2])
@@ -76,6 +81,8 @@ _ = DEFAULT_URL36
   // Fetch 28-bit OUI
   client28 := http.Client{Timeout: time.Second*60}
 
+  if opt_v > 0 { fmt.Println("Fetching ", opt_M) }
+
   var response28 *http.Response
   response28, err = client28.Get(opt_M)
   if err != nil {
@@ -83,7 +90,7 @@ _ = DEFAULT_URL36
   }
   defer response28.Body.Close()
 
-  data28 := make(map[string]string)
+  if opt_v > 0 { fmt.Println("Parsing ", opt_M) }
 
   reader28 := csv.NewReader(response28.Body)
   var records28 [][]string
@@ -92,16 +99,16 @@ _ = DEFAULT_URL36
     log.Fatal(err)
   }
 
-  data28["time"] = time.Now().String()
-
   for _, record := range records28 {
     if len(record) == 4 && oui28.MatchString(record[1]) {
-      data28[ strings.ToLower(record[1]) ] = strings.TrimSpace(record[2])
+      data[ strings.ToLower(record[1]) ] = strings.TrimSpace(record[2])
     }
   }
 
   // Fetch 36-bit OUI
   client36 := http.Client{Timeout: time.Second*60}
+
+  if opt_v > 0 { fmt.Println("Fetching ", opt_S) }
 
   var response36 *http.Response
   response36, err = client36.Get(opt_S)
@@ -110,7 +117,7 @@ _ = DEFAULT_URL36
   }
   defer response36.Body.Close()
 
-  data36 := make(map[string]string)
+  if opt_v > 0 { fmt.Println("Parsing ", opt_S) }
 
   reader36 := csv.NewReader(response36.Body)
   var records36 [][]string
@@ -119,18 +126,18 @@ _ = DEFAULT_URL36
     log.Fatal(err)
   }
 
-  data36["time"] = time.Now().String()
-
   for _, record := range records36 {
     if len(record) == 4 && oui36.MatchString(record[1]) {
-      data36[ strings.ToLower(record[1]) ] = strings.TrimSpace(record[2])
+      data[ strings.ToLower(record[1]) ] = strings.TrimSpace(record[2])
     }
   }
 
 
-
-
   // save to Redis
+  data["time"] = time.Now().String()
+
+  if opt_v > 0 { fmt.Println("Saving to redis") }
+
   red, err := redis.Dial("unix", opt_s, redis.DialConnectTimeout(time.Second*10),
                          redis.DialReadTimeout(time.Second*10),
                          redis.DialWriteTimeout(time.Second*10),
@@ -144,22 +151,13 @@ _ = DEFAULT_URL36
 
   for oui, corp := range data {
     _, err = red.Do("HSET", "oui", oui, corp)
+
+    if opt_v > 1 { fmt.Println(oui, "\t", corp) }
+
     if err != nil {
       log.Fatal(err)
     }
   }
 
-  for oui, corp := range data28 {
-    _, err = red.Do("HSET", "oui28", oui, corp)
-    if err != nil {
-      log.Fatal(err)
-    }
-  }
-
-  for oui, corp := range data36 {
-    _, err = red.Do("HSET", "oui36", oui, corp)
-    if err != nil {
-      log.Fatal(err)
-    }
-  }
+  if opt_v > 0 { fmt.Println("Done") }
 }
