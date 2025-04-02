@@ -1,10 +1,20 @@
+Downloads IEEE OUI, OUI28 and OUI36 data from official site.
+
 Saves 24-bit OUI data in "oui" hash.
+
 Saves 28-bit OUI data in "oui28" hash.
+
 Saves 36-bit OUI data in "oui36" hash.
 
+Company names only, no addresses.
+
 MAC search order:
+
 lookup "oui" hash with first 6 half-octets (3 octets)
+
 If you find "IEEE Registration Authority", then lookup "oui28" with first 7 half-octets or lookup "oui36" with first 9 half-octets until you find answer (if it is there).
+
+
 
 Hash keys are lowercase!
 
